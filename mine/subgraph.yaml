@@ -3,7 +3,11 @@ indexerHints:
   prune: auto
 schema:
   file: ./schema.graphql
+
 dataSources:
+  #############################
+  # Uniswap V3 Factory (ETH)
+  #############################
   - kind: ethereum
     name: UniswapV3Factory
     network: mainnet
@@ -16,9 +20,9 @@ dataSources:
       apiVersion: 0.0.9
       language: wasm/assemblyscript
       entities:
+        - Pool
         - FeeAmountEnabled
         - OwnerChanged
-        - PoolCreated
       abis:
         - name: UniswapV3Factory
           file: ./abis/UniswapV3Factory.json
@@ -30,19 +34,24 @@ dataSources:
         - event: PoolCreated(indexed address,indexed address,indexed uint24,int24,address)
           handler: handlePoolCreated
       file: ./src/uniswap-v-3-factory.ts
+
+  #############################
+  # Uniswap V2 Factory (ETH)
+  #############################
   - kind: ethereum
     name: UniswapV2Factory
     network: mainnet
     source:
-      address: "0xC0AEe478e3658e2610c5F7A4A2E1777Ce9e4f2Ac"
+      address: "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
       abi: UniswapV2Factory
-      startBlock: 10794229
+      # Earliest PairCreated event around block ~10000835
+      startBlock: 10000835
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9
       language: wasm/assemblyscript
       entities:
-        - PairCreated
+        - Pair
       abis:
         - name: UniswapV2Factory
           file: ./abis/UniswapV2Factory.json
@@ -50,3 +59,55 @@ dataSources:
         - event: PairCreated(indexed address,indexed address,address,uint256)
           handler: handlePairCreated
       file: ./src/uniswap-v-2-factory.ts
+
+  #############################
+  # SushiSwap V2 Factory (ETH)
+  #############################
+  - kind: ethereum
+    name: SushiSwapV2Factory
+    network: mainnet
+    source:
+      address: "0xC0AEe478e3658e2610c5F7A4A2E1777Ce9e4f2Ac"
+      abi: SushiSwapV2Factory
+      # SushiSwap V2 factory is a Uniswap V2 fork deployed after V2
+      # So block set shortly after V2 deployment
+      startBlock: 10794229
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - Pair
+      abis:
+        - name: SushiSwapV2Factory
+          file: ./abis/SushiSwapV2Factory.json
+      eventHandlers:
+        - event: PairCreated(indexed address,indexed address,address,uint256)
+          handler: handlePairCreated
+      file: ./src/sushiswap-v-2-factory.ts
+
+  #############################
+  # (Optional) Additional V2‑like Factories
+  # Add here if you later want extra DEXes
+  #############################
+  # Example:
+  # - kind: ethereum
+  #   name: ShibaSwapV2Factory
+  #   network: mainnet
+  #   source:
+  #     address: "0x115934131916C8b277DD010Ee02de363c09d037c"
+  #     abi: ShibaSwapV2Factory
+  #     startBlock:  (confirm via creation tx)
+  #   mapping:
+  #     kind: ethereum/events
+  #     apiVersion: 0.0.9
+  #     language: wasm/assemblyscript
+  #     entities:
+  #       - Pair
+  #     abis:
+  #       - name: ShibaSwapV2Factory
+  #         file: ./abis/ShibaSwapV2Factory.json
+  #     eventHandlers:
+  #       - event: PairCreated(indexed address,indexed address,address,uint256)
+  #         handler: handlePairCreated
+  #     file: ./src/shibaswap-v-2-factory.ts
