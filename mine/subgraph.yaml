@@ -30,3 +30,23 @@ dataSources:
         - event: PoolCreated(indexed address,indexed address,indexed uint24,int24,address)
           handler: handlePoolCreated
       file: ./src/uniswap-v-3-factory.ts
+  - kind: ethereum
+    name: UniswapV2Factory
+    network: mainnet
+    source:
+      address: "0xC0AEe478e3658e2610c5F7A4A2E1777Ce9e4f2Ac"
+      abi: UniswapV2Factory
+      startBlock: 10794229
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - PairCreated
+      abis:
+        - name: UniswapV2Factory
+          file: ./abis/UniswapV2Factory.json
+      eventHandlers:
+        - event: PairCreated(indexed address,indexed address,address,uint256)
+          handler: handlePairCreated
+      file: ./src/uniswap-v-2-factory.ts
