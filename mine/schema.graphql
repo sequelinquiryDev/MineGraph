@@ -52,7 +52,7 @@ type PairCreated @entity(immutable: true) {
 # Tracks real-time fields for topology + swap calculations
 #############################
 
-type Pool @entity {
+type Pool @entity(immutable: false) {
   id: Bytes!                  # pool address (primary key)
 
   #### Tokens
