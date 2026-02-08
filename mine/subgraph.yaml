@@ -107,7 +107,7 @@ templates:
       eventHandlers:
         - event: Sync(uint112,uint112)
           handler: handleSync
-        - event: Swap(indexed address,uint256,uint256,indexed address)
+        - event: Swap(indexed address,uint256,uinit256,uinit256,uinit256,indexed address)
           handler: handleSwapV2
         - event: Mint(indexed address,uint256,uint256)
           handler: handleMintV2
