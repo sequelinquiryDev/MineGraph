@@ -21,12 +21,20 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.9
       language: wasm/assemblyscript
+      entities:
+        - PoolCreated
+        - OwnerChanged
+        - FeeAmountEnabled
       abis:
         - name: UniswapV3Factory
           file: ./abis/UniswapV3Factory.json
       eventHandlers:
         - event: PoolCreated(indexed address,indexed address,indexed uint24,int24,address)
           handler: handleV3PoolCreated
+        - event: OwnerChanged(indexed address,indexed address)
+          handler: handleOwnerChanged
+        - event: FeeAmountEnabled(uint24,int24)
+          handler: handleFeeAmountEnabled
       file: ./src/factories.ts
 
   #############################
@@ -43,6 +51,8 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.9
       language: wasm/assemblyscript
+      entities:
+        - Pair
       abis:
         - name: UniswapV2Factory
           file: ./abis/UniswapV2Factory.json
@@ -65,6 +75,8 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.9
       language: wasm/assemblyscript
+      entities:
+        - Pair
       abis:
         - name: SushiSwapV2Factory
           file: ./abis/SushiSwapV2Factory.json
@@ -75,9 +87,6 @@ dataSources:
 
 templates:
 
-  #############################
-  # V2 Pair Template
-  #############################
   - name: V2Pair
     kind: ethereum/contract
     network: mainnet
@@ -103,9 +112,6 @@ templates:
           handler: handleBurnV2
       file: ./src/PairsAndPools.ts
 
-  #############################
-  # V3 Pool Template
-  #############################
   - name: V3Pool
     kind: ethereum/contract
     network: mainnet
