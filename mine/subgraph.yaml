@@ -98,7 +98,7 @@ templates:
           handler: handleMintV2
         - event: Burn(indexed address,uint256,uint256,indexed address)
           handler: handleBurnV2
-      file: ./src/v2-pair.ts
+      file: ./src/PairsAndPools.ts
 
   - name: V3Pool
     kind: ethereum/contract
@@ -121,4 +121,4 @@ templates:
           handler: handleMintV3
         - event: Burn(indexed address,int24,int24,uint128,uint256,uint256)
           handler: handleBurnV3
-      file: ./src/v3-pool.ts
+      file: ./src/PairsAndPools.ts
