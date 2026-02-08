@@ -1,120 +1,6 @@
 #############################
-# UNISWAP V3 ENTITIES
-#############################
-
-type FeeAmountEnabled @entity(immutable: true) {
-  id: Bytes!
-  fee: Int!          # uint24
-  tickSpacing: Int!  # int24
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type OwnerChanged @entity(immutable: true) {
-  id: Bytes!
-  oldOwner: Bytes!   # address
-  newOwner: Bytes!   # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type PoolCreated @entity(immutable: true) {
-  id: Bytes!
-  token0: Bytes!     # address
-  token1: Bytes!     # address
-  fee: Int!          # uint24
-  tickSpacing: Int!  # int24
-  pool: Bytes!       # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type Mint @entity(immutable: true) {
-  id: Bytes!
-  sender: Bytes!        # non-indexed
-  owner: Bytes!         # indexed
-  tickLower: Int!       # indexed
-  tickUpper: Int!       # indexed
-  amount: BigDecimal
-  amount0: BigDecimal
-  amount1: BigDecimal
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type Burn @entity(immutable: true) {
-  id: Bytes!
-  owner: Bytes!         # indexed
-  tickLower: Int!       # indexed
-  tickUpper: Int!       # indexed
-  amount: BigDecimal
-  amount0: BigDecimal
-  amount1: BigDecimal
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type Swap @entity(immutable: true) {
-  id: Bytes!
-  sender: Bytes!        # indexed
-  recipient: Bytes!     # indexed
-  amount0: BigDecimal
-  amount1: BigDecimal
-  sqrtPriceX96: BigDecimal
-  liquidity: BigDecimal
-  tick: Int!
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-#############################
-# UNISWAP V2 / SUSHISWAP V2 ENTITIES
-#############################
-
-type PairCreated @entity(immutable: true) {
-  id: Bytes!
-  token0: Bytes!     # address
-  token1: Bytes!     # address
-  pair: Bytes!       # address
-  param3: BigInt!    # uint256
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type BurnV2 @entity(immutable: true) {
-  id: Bytes!
-  sender: Bytes!      # indexed
-  to: Bytes!          # indexed
-  amount0: BigDecimal
-  amount1: BigDecimal
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type SwapV2 @entity(immutable: true) {
-  id: Bytes!
-  sender: Bytes!        # indexed
-  to: Bytes!            # indexed
-  amount0In: BigDecimal
-  amount1In: BigDecimal
-  amount0Out: BigDecimal
-  amount1Out: BigDecimal
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-#############################
 # POOL LIVE STATE ENTITY
-# Tracks real-time fields for topology + swap calculations
+# Combines V2 and V3 pools
 #############################
 
 type Pool @entity(immutable: false) {
@@ -131,13 +17,37 @@ type Pool @entity(immutable: false) {
   #### Live fields
   reserve0: BigDecimal        # current reserve of token0
   reserve1: BigDecimal        # current reserve of token1
-  reserveUSD: BigDecimal      # total USD value of reserves
-  volumeUSD: BigDecimal       # cumulative volume in USD
   txCount: BigInt             # cumulative number of swaps
-  totalValueLockedUSD: BigDecimal # cumulative liquidity USD value
 
   #### Metadata
   dexType: String             # "v2" or "v3"
   createdAtBlock: BigInt
   createdAtTimestamp: BigInt
+}
+
+#############################
+# FACTORY EVENTS
+# Only needed to create templates for Pool
+#############################
+
+type PoolCreated @entity(immutable: true) {
+  id: Bytes!
+  token0: Bytes!
+  token1: Bytes!
+  fee: Int!          # uint24
+  tickSpacing: Int!  # int24
+  pool: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type PairCreated @entity(immutable: true) {
+  id: Bytes!
+  token0: Bytes!
+  token1: Bytes!
+  pair: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
 }
