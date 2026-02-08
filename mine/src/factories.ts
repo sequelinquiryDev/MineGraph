@@ -1,55 +1,22 @@
 import { Bytes, BigDecimal, BigInt } from "@graphprotocol/graph-ts"
 
-import {
-  FeeAmountEnabled as FeeAmountEnabledEvent,
-  OwnerChanged as OwnerChangedEvent,
-  PoolCreated as V3PoolCreatedEvent
-} from "../generated/UniswapV3Factory/UniswapV3Factory"
+// Events
+import { PoolCreated as V3PoolCreatedEvent } from "../generated/UniswapV3Factory/UniswapV3Factory"
+import { PairCreated as V2PairCreatedEvent } from "../generated/UniswapV2Factory/UniswapV2Factory"
+import { PairCreated as SushiPairCreatedEvent } from "../generated/SushiSwapV2Factory/SushiSwapV2Factory"
 
-import {
-  PairCreated as V2PairCreatedEvent
-} from "../generated/UniswapV2Factory/UniswapV2Factory"
+// Entities
+import { PoolCreated, PairCreated, Pool } from "../generated/schema"
 
-import {
-  FeeAmountEnabled,
-  OwnerChanged,
-  PoolCreated,
-  PairCreated,
-  Pool
-} from "../generated/schema"
+// Templates
+import { V2Pair, V3Pool } from "../generated/templates"
 
 /******************************
- * Uniswap V3 Factory Handlers
+ * Uniswap V3 Factory Handler
  ******************************/
-export function handleFeeAmountEnabled(event: FeeAmountEnabledEvent): void {
-  let entity = new FeeAmountEnabled(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.fee = event.params.fee
-  entity.tickSpacing = event.params.tickSpacing
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-  entity.save()
-}
-
-export function handleOwnerChanged(event: OwnerChangedEvent): void {
-  let entity = new OwnerChanged(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.oldOwner = event.params.oldOwner
-  entity.newOwner = event.params.newOwner
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-  entity.save()
-}
-
 export function handleV3PoolCreated(event: V3PoolCreatedEvent): void {
-  // Event history
-  let entity = new PoolCreated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
+  // Save immutable event history
+  let entity = new PoolCreated(event.transaction.hash.concatI32(event.logIndex.toI32()))
   entity.token0 = event.params.token0
   entity.token1 = event.params.token1
   entity.fee = event.params.fee
@@ -60,7 +27,7 @@ export function handleV3PoolCreated(event: V3PoolCreatedEvent): void {
   entity.transactionHash = event.transaction.hash
   entity.save()
 
-  // ***** ACTUAL POOL CREATION *****
+  // Create Pool entity
   let pool = new Pool(event.params.pool)
   pool.token0 = event.params.token0
   pool.token1 = event.params.token1
@@ -69,44 +36,49 @@ export function handleV3PoolCreated(event: V3PoolCreatedEvent): void {
   pool.dexType = "v3"
   pool.reserve0 = BigDecimal.zero()
   pool.reserve1 = BigDecimal.zero()
-  pool.reserveUSD = BigDecimal.zero()
-  pool.volumeUSD = BigDecimal.zero()
   pool.txCount = BigInt.zero()
-  pool.totalValueLockedUSD = BigDecimal.zero()
   pool.createdAtBlock = event.block.number
   pool.createdAtTimestamp = event.block.timestamp
   pool.save()
+
+  // Instantiate template to track live pool events
+  V3Pool.create(event.params.pool)
 }
 
 /******************************
- * V2 Factory Handlers
+ * Uniswap V2 Factory Handler
  ******************************/
 export function handleV2PairCreated(event: V2PairCreatedEvent): void {
-  // Event history
-  let entity = new PairCreated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
+  // Save immutable event history
+  let entity = new PairCreated(event.transaction.hash.concatI32(event.logIndex.toI32()))
   entity.token0 = event.params.token0
   entity.token1 = event.params.token1
   entity.pair = event.params.pair
-  entity.param3 = event.params.param3
   entity.blockNumber = event.block.number
   entity.blockTimestamp = event.block.timestamp
   entity.transactionHash = event.transaction.hash
   entity.save()
 
-  // ***** ACTUAL POOL CREATION *****
+  // Create Pool entity
   let pool = new Pool(event.params.pair)
   pool.token0 = event.params.token0
   pool.token1 = event.params.token1
   pool.dexType = "v2"
   pool.reserve0 = BigDecimal.zero()
   pool.reserve1 = BigDecimal.zero()
-  pool.reserveUSD = BigDecimal.zero()
-  pool.volumeUSD = BigDecimal.zero()
   pool.txCount = BigInt.zero()
-  pool.totalValueLockedUSD = BigDecimal.zero()
   pool.createdAtBlock = event.block.number
   pool.createdAtTimestamp = event.block.timestamp
   pool.save()
+
+  // Instantiate template to track live pool events
+  V2Pair.create(event.params.pair)
+}
+
+/******************************
+ * SushiSwap V2 Factory Handler
+ ******************************/
+export function handleSushiPairCreated(event: SushiPairCreatedEvent): void {
+  // Reuse the same logic as Uniswap V2
+  handleV2PairCreated(event)
 }
