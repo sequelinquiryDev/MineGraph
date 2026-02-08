@@ -75,6 +75,9 @@ dataSources:
 
 templates:
 
+  #############################
+  # V2 Pair Template
+  #############################
   - name: V2Pair
     kind: ethereum/contract
     network: mainnet
@@ -100,6 +103,9 @@ templates:
           handler: handleBurnV2
       file: ./src/PairsAndPools.ts
 
+  #############################
+  # V3 Pool Template
+  #############################
   - name: V3Pool
     kind: ethereum/contract
     network: mainnet
