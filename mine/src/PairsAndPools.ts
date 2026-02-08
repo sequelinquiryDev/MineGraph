@@ -5,13 +5,13 @@ import {
   Swap as V2SwapEvent,
   Mint as V2MintEvent,
   Burn as V2BurnEvent
-} from "../generated/templates/V2Pair/V2Pair"
+} from "../generated/templates/V2Pair/UnisawpV2Pair"
 
 import {
   Swap as V3SwapEvent,
   Mint as V3MintEvent,
   Burn as V3BurnEvent
-} from "../generated/templates/V3Pool/V3Pool"
+} from "../generated/templates/V3Pool/UniswapV3Pool"
 
 import { Pool } from "../generated/schema"
 
