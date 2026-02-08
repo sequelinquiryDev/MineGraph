@@ -23,18 +23,12 @@ dataSources:
       language: wasm/assemblyscript
       entities:
         - PoolCreated
-        - OwnerChanged
-        - FeeAmountEnabled
       abis:
         - name: UniswapV3Factory
           file: ./abis/UniswapV3Factory.json
       eventHandlers:
         - event: PoolCreated(indexed address,indexed address,indexed uint24,int24,address)
           handler: handleV3PoolCreated
-        - event: OwnerChanged(indexed address,indexed address)
-          handler: handleOwnerChanged
-        - event: FeeAmountEnabled(indexed uint24,indexed int24)
-          handler: handleFeeAmountEnabled
       file: ./src/factories.ts
 
   #############################
@@ -52,7 +46,7 @@ dataSources:
       apiVersion: 0.0.9
       language: wasm/assemblyscript
       entities:
-        - Pair
+        - PairCreated
       abis:
         - name: UniswapV2Factory
           file: ./abis/UniswapV2Factory.json
@@ -76,7 +70,7 @@ dataSources:
       apiVersion: 0.0.9
       language: wasm/assemblyscript
       entities:
-        - Pair
+        - PairCreated
       abis:
         - name: SushiSwapV2Factory
           file: ./abis/SushiSwapV2Factory.json
