@@ -5,7 +5,7 @@ import {
   Swap as V2SwapEvent,
   Mint as V2MintEvent,
   Burn as V2BurnEvent
-} from "../generated/templates/V2Pair/UnisawpV2Pair"
+} from "../generated/templates/V2Pair/UniswapV2Pair"
 
 import {
   Swap as V3SwapEvent,
