@@ -59,7 +59,7 @@ export function handleV2PairCreated(event: V2PairCreatedEvent): void {
   entity.token0 = event.params.token0
   entity.token1 = event.params.token1
   entity.pair = event.params.pair
-  entity.param3 = event.params[2] // last uint256
+  entity.param3 = event.params.param3 // last uint256
   entity.blockNumber = event.block.number
   entity.blockTimestamp = event.block.timestamp
   entity.transactionHash = event.transaction.hash
