@@ -1,4 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts"
+import { BigInt, BigDecimal } from "@graphprotocol/graph-ts"
 
 import {
   Sync as V2SyncEvent,
@@ -16,105 +16,130 @@ import {
 import { Pool } from "../generated/schema"
 
 /******************************
- * V2 Pair Handlers
+ * Helpers
  ******************************/
-export function handleSync(event: V2SyncEvent): void {
-  let poolId = event.address.toHex()
+function bigIntToBigDecimal(value: BigInt, decimals: i32 = 18): BigDecimal {
+  let precision = BigInt.fromI32(10).pow(decimals as u8).toBigDecimal()
+  return value.toBigDecimal().div(precision)
+}
+
+function initializePool(poolId: string): Pool {
   let entity = Pool.load(poolId)
   if (entity == null) {
     entity = new Pool(poolId)
-    entity.reserve0 = BigInt.fromI32(0)
-    entity.reserve1 = BigInt.fromI32(0)
-    entity.reserveUSD = BigInt.fromI32(0)
-    entity.volumeUSD = BigInt.fromI32(0)
-    entity.txCount = BigInt.fromI32(0)
-    entity.totalValueLockedUSD = BigInt.fromI32(0)
+    entity.reserve0 = BigDecimal.zero()
+    entity.reserve1 = BigDecimal.zero()
+    entity.reserveUSD = BigDecimal.zero()
+    entity.volumeUSD = BigDecimal.zero()
+    entity.txCount = BigInt.zero()
+    entity.totalValueLockedUSD = BigDecimal.zero()
   }
-  entity.reserve0 = event.params.reserve0
-  entity.reserve1 = event.params.reserve1
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.save()
+  return entity as Pool
+}
+
+// Placeholder: replace with your price oracle logic
+function getTokenPriceUSD(tokenAddress: string): BigDecimal {
+  // Example: fixed dummy price for testing
+  return BigDecimal.fromString("1") // 1 USD
+}
+
+function updateUSDValues(pool: Pool): void {
+  let token0Price = getTokenPriceUSD(pool.token0.toHex())
+  let token1Price = getTokenPriceUSD(pool.token1.toHex())
+
+  pool.reserveUSD = pool.reserve0.times(token0Price).plus(pool.reserve1.times(token1Price))
+  pool.totalValueLockedUSD = pool.reserveUSD
+}
+
+/******************************
+ * V2 Handlers
+ ******************************/
+export function handleSync(event: V2SyncEvent): void {
+  let poolId = event.address.toHex()
+  let pool = initializePool(poolId)
+  pool.reserve0 = bigIntToBigDecimal(event.params.reserve0)
+  pool.reserve1 = bigIntToBigDecimal(event.params.reserve1)
+  pool.blockNumber = event.block.number
+  pool.blockTimestamp = event.block.timestamp
+
+  updateUSDValues(pool)
+  pool.save()
 }
 
 export function handleSwapV2(event: V2SwapEvent): void {
   let poolId = event.address.toHex()
-  let entity = Pool.load(poolId)
-  if (entity == null) {
-    entity = new Pool(poolId)
-  }
-  entity.txCount = entity.txCount.plus(BigInt.fromI32(1))
-  // For simplicity, volumeUSD accumulation can be calculated off-chain or extended later
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.save()
+  let pool = initializePool(poolId)
+  pool.txCount = pool.txCount.plus(BigInt.fromI32(1))
+  pool.blockNumber = event.block.number
+  pool.blockTimestamp = event.block.timestamp
+
+  // Sync will update reserves
+  updateUSDValues(pool)
+  pool.save()
 }
 
 export function handleMintV2(event: V2MintEvent): void {
   let poolId = event.address.toHex()
-  let entity = Pool.load(poolId)
-  if (entity == null) {
-    entity = new Pool(poolId)
-  }
-  // Optional: track liquidity inflow
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.save()
+  let pool = initializePool(poolId)
+  pool.blockNumber = event.block.number
+  pool.blockTimestamp = event.block.timestamp
+
+  updateUSDValues(pool)
+  pool.save()
 }
 
 export function handleBurnV2(event: V2BurnEvent): void {
   let poolId = event.address.toHex()
-  let entity = Pool.load(poolId)
-  if (entity == null) {
-    entity = new Pool(poolId)
-  }
-  // Optional: track liquidity outflow
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.save()
+  let pool = initializePool(poolId)
+  pool.blockNumber = event.block.number
+  pool.blockTimestamp = event.block.timestamp
+
+  updateUSDValues(pool)
+  pool.save()
 }
 
 /******************************
- * V3 Pool Handlers
+ * V3 Handlers
  ******************************/
 export function handleSwapV3(event: V3SwapEvent): void {
   let poolId = event.address.toHex()
-  let entity = Pool.load(poolId)
-  if (entity == null) {
-    entity = new Pool(poolId)
-    entity.reserve0 = BigInt.fromI32(0)
-    entity.reserve1 = BigInt.fromI32(0)
-    entity.reserveUSD = BigInt.fromI32(0)
-    entity.volumeUSD = BigInt.fromI32(0)
-    entity.txCount = BigInt.fromI32(0)
-    entity.totalValueLockedUSD = BigInt.fromI32(0)
-  }
-  entity.txCount = entity.txCount.plus(BigInt.fromI32(1))
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.save()
+  let pool = initializePool(poolId)
+  pool.txCount = pool.txCount.plus(BigInt.fromI32(1))
+
+  let amount0 = bigIntToBigDecimal(event.params.amount0)
+  let amount1 = bigIntToBigDecimal(event.params.amount1)
+  pool.reserve0 = pool.reserve0.minus(amount0)
+  pool.reserve1 = pool.reserve1.minus(amount1)
+
+  pool.blockNumber = event.block.number
+  pool.blockTimestamp = event.block.timestamp
+
+  updateUSDValues(pool)
+  pool.save()
 }
 
 export function handleMintV3(event: V3MintEvent): void {
   let poolId = event.address.toHex()
-  let entity = Pool.load(poolId)
-  if (entity == null) {
-    entity = new Pool(poolId)
-  }
-  // track liquidity inflow if needed
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.save()
+  let pool = initializePool(poolId)
+
+  pool.reserve0 = pool.reserve0.plus(bigIntToBigDecimal(event.params.amount0))
+  pool.reserve1 = pool.reserve1.plus(bigIntToBigDecimal(event.params.amount1))
+  pool.blockNumber = event.block.number
+  pool.blockTimestamp = event.block.timestamp
+
+  updateUSDValues(pool)
+  pool.save()
 }
 
 export function handleBurnV3(event: V3BurnEvent): void {
   let poolId = event.address.toHex()
-  let entity = Pool.load(poolId)
-  if (entity == null) {
-    entity = new Pool(poolId)
-  }
-  // track liquidity outflow if needed
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.save()
+  let pool = initializePool(poolId)
+
+  pool.reserve0 = pool.reserve0.minus(bigIntToBigDecimal(event.params.amount0))
+  pool.reserve1 = pool.reserve1.minus(bigIntToBigDecimal(event.params.amount1))
+  pool.blockNumber = event.block.number
+  pool.blockTimestamp = event.block.timestamp
+
+  updateUSDValues(pool)
+  pool.save()
 }
